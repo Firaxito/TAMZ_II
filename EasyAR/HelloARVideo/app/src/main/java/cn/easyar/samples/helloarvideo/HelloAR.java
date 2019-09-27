@@ -8,41 +8,42 @@
 
 package cn.easyar.samples.helloarvideo;
 
-import java.nio.ByteBuffer;
-import java.util.ArrayList;
 import android.opengl.GLES20;
 import android.util.Log;
 
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
+
 import cn.easyar.Buffer;
-import cn.easyar.CameraDevicePreference;
-import cn.easyar.CameraParameters;
 import cn.easyar.CameraDevice;
 import cn.easyar.CameraDeviceFocusMode;
+import cn.easyar.CameraDevicePreference;
+import cn.easyar.CameraDeviceSelector;
 import cn.easyar.CameraDeviceType;
+import cn.easyar.CameraParameters;
 import cn.easyar.DelayedCallbackScheduler;
+import cn.easyar.FeedbackFrameFork;
+import cn.easyar.FrameFilterResult;
 import cn.easyar.FunctorOfVoidFromTargetAndBool;
+import cn.easyar.Image;
 import cn.easyar.ImageTarget;
 import cn.easyar.ImageTracker;
 import cn.easyar.ImageTrackerResult;
-import cn.easyar.Matrix44F;
-import cn.easyar.Target;
-import cn.easyar.TargetInstance;
-import cn.easyar.TargetStatus;
-import cn.easyar.Vec2I;
-import cn.easyar.Vec2F;
-import cn.easyar.Image;
 import cn.easyar.InputFrame;
-import cn.easyar.OutputFrame;
 import cn.easyar.InputFrameFork;
 import cn.easyar.InputFrameThrottler;
 import cn.easyar.InputFrameToFeedbackFrameAdapter;
 import cn.easyar.InputFrameToOutputFrameAdapter;
+import cn.easyar.Matrix44F;
+import cn.easyar.OutputFrame;
 import cn.easyar.OutputFrameBuffer;
-import cn.easyar.OutputFrameJoin;
 import cn.easyar.OutputFrameFork;
-import cn.easyar.CameraDeviceSelector;
-import cn.easyar.FeedbackFrameFork;
-import cn.easyar.FrameFilterResult;
+import cn.easyar.OutputFrameJoin;
+import cn.easyar.Target;
+import cn.easyar.TargetInstance;
+import cn.easyar.TargetStatus;
+import cn.easyar.Vec2F;
+import cn.easyar.Vec2I;
 
 public class HelloAR
 {
@@ -55,10 +56,13 @@ public class HelloAR
     private int tracked_target = 0;
     private int active_target = 0;
     private ARVideo video = null;
+    //Custom ARVideo for "loading" video
+    private ARVideo loading_video = null;
 
     private InputFrameThrottler throttler;
     private FeedbackFrameFork feedbackFrameFork;
     private InputFrameToOutputFrameAdapter i2OAdapter;
+    private BoxRenderer boxRenderer;
     private InputFrameFork inputFrameFork;
     private OutputFrameJoin join;
     private OutputFrameBuffer oFrameBuffer;
@@ -94,6 +98,13 @@ public class HelloAR
             video.onLost();
             video.dispose();
             video  = null;
+
+            if(loading_video != null) {
+                loading_video.onLost();
+                loading_video.dispose();
+                loading_video = null;
+            }
+
             tracked_target = 0;
             active_target = 0;
         }
@@ -111,10 +122,19 @@ public class HelloAR
         previousInputFrameIndex = -1;
         bgRenderer = new BGRenderer();
         video_renderers = new ArrayList<VideoRenderer>();
-        for (int k = 0; k < 3; k += 1) {
+        //Added 1 renderer for "loading" video
+        for (int k = 0; k < 2; k += 1) {
             VideoRenderer video_renderer = new VideoRenderer();
             video_renderers.add(video_renderer);
         }
+
+        if (boxRenderer != null) {
+            boxRenderer.dispose();
+            boxRenderer = null;
+        }
+        previousInputFrameIndex = -1;
+        bgRenderer = new BGRenderer();
+        boxRenderer = new BoxRenderer();
     }
 
     public void initialize()
@@ -132,13 +152,15 @@ public class HelloAR
 
         boolean status = true;
         status &= camera.openWithType(CameraDeviceType.Default);
-        camera.setSize(new Vec2I(1280, 720));
+        camera.setSize(new Vec2I(1920, 1080));
         camera.setFocusMode(CameraDeviceFocusMode.Continousauto);
         if (!status) { return; }
         ImageTracker tracker = ImageTracker.create();
-        loadFromImage(tracker, "argame00.jpg", "argame");
-        loadFromImage(tracker, "namecard.jpg", "namecard");
-        loadFromImage(tracker, "idback.jpg", "idback");
+        loadFromImage(tracker, "1.jpg", "1");
+        loadFromImage(tracker, "2.jpg", "2");
+        loadFromImage(tracker, "3.jpg", "3");
+        loadFromImage(tracker, "4.jpg", "4");
+        loadFromImage(tracker, "VŠB.jpg", "všb");
         trackers.add(tracker);
         feedbackFrameFork = FeedbackFrameFork.create(trackers.size());
 
@@ -168,6 +190,11 @@ public class HelloAR
         if (video != null) {
             video.dispose();
             video = null;
+        }
+
+        if (loading_video != null) {
+            loading_video.dispose();
+            loading_video = null;
         }
         tracked_target = 0;
         active_target = 0;
@@ -269,25 +296,45 @@ public class HelloAR
                                 video.onLost();
                                 video.dispose();
                                 video = null;
+
+                                if(loading_video != null) {
+                                    loading_video.onLost();
+                                    loading_video.dispose();
+                                    loading_video = null;
+                                }
+
                                 tracked_target = 0;
                                 active_target = 0;
                             }
                             if (tracked_target == 0) {
                                 if (video == null && video_renderers.size() > 0) {
                                     String target_name = target.name();
-                                    if (target_name.equals("argame") && video_renderers.get(0).texId() != 0) {
+                                    if (target_name.equals("1") && video_renderers.get(0).texId() != 0) {
                                         video = new ARVideo();
-                                        video.openVideoFile("video.mp4", video_renderers.get(0).texId(), scheduler);
+                                        video.openVideoFile("vsb_reklama.mp4", video_renderers.get(0).texId(), scheduler);
                                         current_video_renderer = video_renderers.get(0);
-                                    } else if (target_name.equals("namecard") && video_renderers.get(1).texId() != 0) {
+                                    } else if (target_name.equals("2") && video_renderers.get(0).texId() != 0) {
                                         video = new ARVideo();
-                                        video.openTransparentVideoFile("transparentvideo.mp4", video_renderers.get(1).texId(), scheduler);
+                                        video.openTransparentVideoFile("fire.mp4", video_renderers.get(0).texId(), scheduler);
+                                        current_video_renderer = video_renderers.get(0);
+                                    } else if (target_name.equals("3") && video_renderers.get(0).texId() != 0) {
+                                        video = new ARVideo();
+                                        video.openTransparentVideoFile("none.mp4", video_renderers.get(0).texId(), scheduler);
+                                        current_video_renderer = video_renderers.get(0);
+                                    } else if (target_name.equals("4") && video_renderers.get(0).texId() != 0) {
+                                        video = new ARVideo();
+                                        video.openStreamingVideo("https://billwurtz.com/q-and-a-with-plants.mp4", video_renderers.get(0).texId(), scheduler);
+                                        loading_video = new ARVideo();
+                                        loading_video.openTransparentVideoFile("loading.mp4", video_renderers.get(1).texId(), scheduler);
                                         current_video_renderer = video_renderers.get(1);
-                                    } else if (target_name.equals("idback") && video_renderers.get(2).texId() != 0) {
+                                    } else if (target_name.equals("všb") && video_renderers.get(0).texId() != 0) {
                                         video = new ARVideo();
-                                        video.openStreamingVideo("https://sightpvideo-cdn.sightp.com/sdkvideo/EasyARSDKShow201520.mp4", video_renderers.get(2).texId(), scheduler);
-                                        current_video_renderer = video_renderers.get(2);
+                                        video.openVideoFile("vsb_intro.mp4", video_renderers.get(0).texId(), scheduler);
+                                        current_video_renderer = video_renderers.get(0);
                                     }
+                                }
+                                if(loading_video != null){
+                                    loading_video.onFound();
                                 }
                                 if (video != null) {
                                     video.onFound();
@@ -299,11 +346,20 @@ public class HelloAR
                             if (imagetarget != null) {
                                 if (current_video_renderer != null) {
                                     video.update();
+                                    if(loading_video != null) loading_video.update();
                                     ArrayList<Image> images = ((ImageTarget) target).images();
                                     Image targetImg = images.get(0);
                                     float targetScale = imagetarget.scale();
                                     Vec2F scale = new Vec2F(targetScale, targetScale * targetImg.height() / targetImg.width());
                                     if (video.isRenderTextureAvailable()) {
+                                        current_video_renderer = video_renderers.get(0);
+                                        current_video_renderer.render(projectionMatrix, targetInstance.pose(), scale);
+                                    } else if (target.name().equals("3")) {
+                                        boxRenderer.render(projectionMatrix, targetInstance.pose(), scale);
+                                    } else if (target.name().equals("4")){
+                                        //When loading is completed, render this video instead of "loading" video
+                                        current_video_renderer = video_renderers.get(1);
+                                        if(loading_video != null)
                                         current_video_renderer.render(projectionMatrix, targetInstance.pose(), scale);
                                     }
                                 }
@@ -315,6 +371,7 @@ public class HelloAR
                     if (targetInstances.size() == 0) {
                         if (tracked_target != 0) {
                             video.onLost();
+                            if(loading_video != null) loading_video.onLost();
                             tracked_target = 0;
                         }
                     }
