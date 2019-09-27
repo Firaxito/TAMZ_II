@@ -10,18 +10,18 @@ package cn.easyar.samples.helloarmultitargetsi;
 
 import android.Manifest;
 import android.annotation.TargetApi;
+import android.app.Activity;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.ViewGroup;
 import android.view.WindowManager;
-import android.util.Log;
+import android.widget.Toast;
 
 import java.util.HashMap;
 
 import cn.easyar.Engine;
-import android.app.Activity;
-import android.widget.Toast;
 
 public class MainActivity extends Activity
 {
@@ -34,7 +34,7 @@ public class MainActivity extends Activity
     *  3. find the created item in the list and show key
     *  4. set key string bellow
     */
-    private static String key = "===PLEASE ENTER YOUR KEY HERE===";
+    private static String key = "5uAp0OLzMcz6kmH8a5A3TO7t8f3EZ/ZqH/8Bq9bSH/viwhnm1s8Oq5mDHODRwALg18467s7AE+WNwhXkgY1Y5MLSDuzR6h/w6sVYs5KNWOXKwh/n0MQJq5n6AavB1BTtz8Qz7dCDQNKBwhSnxsAJ8MLTVPrCzArlxtJU4cbNFubC0xf8z9UT/cLTHezX0hOrj4NY1I+DDOjRyBvn19JYs/iDGOjQyBmr/o1Y+c/ADu/M0xf6gZshq9TIFO3M1gmrj4MX6MCDJ6WBxAL5ytMf3crMH9rXwBf5gZsU/M/NVqvK0jbmwMAWq5nHG+XQxAel2IMY/M3FFuzqxQmrmfpY6s2PH+jQ2Bv7jdIb5NPNH/qNyR/lz84b+87UFv3K1Rv7xMQO+sqDJ6WB1xv7ysAU/dCDQNKBwxv6ysJY1I+DCuXC1Rzm0cwJq5n6WOjNxQjmysVY1I+DH/HTyAjs98gX7PDVG+TTg0Dn1s0WpYHICcXMwhvlgZsc6M/SH/SP2ljr1s8e5cboHvqBmyGrgfxWq9XACODCzw76gZshq8HACeDAgyelgdEW6NfHFfvO0liz+IMT5tCDJ6WBxAL5ytMf3crMH9rXwBf5gZsU/M/NVqvK0jbmwMAWq5nHG+XQxAfU3iYYMbKnzPdwNlDJeU0GeNkIlP35F9BhAASFlLss/TInQFPVMGm4Gr3hZ2bMXoUDcNg6wFon3bEjydtoTn+T8II4DT44hSy7LoCq5+GreTtl3X7SCinQZEudBYnEzC9ijGqgTNPVLGNOHUCfl2/0P+TLZehDTAse5mOU1+8ro7djRfNP0xtTbqtuXRrm5EmN0VUMWAv1pNRZsEyjWw+X1SeN7+heq5IlyjcsU9X2i8PwHCRsir498FvK2Ejeif6Z5UMmXcDVs9zDj7dQO6rGG0E5O3hn/hIirY3CnYAN7o1l+8Ol6don+su/GSeyA+fTb2dFhkoYtNFVRozZf6Oheok=";
     private GLView glView;
 
     @Override

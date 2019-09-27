@@ -8,18 +8,19 @@
 
 package cn.easyar.samples.helloarmultitargetsi;
 
-import java.nio.ByteBuffer;
-import java.util.ArrayList;
 import android.opengl.GLES20;
 import android.util.Log;
 
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
+
 import cn.easyar.Buffer;
-import cn.easyar.CameraDevicePreference;
-import cn.easyar.CameraDeviceSelector;
-import cn.easyar.CameraParameters;
 import cn.easyar.CameraDevice;
 import cn.easyar.CameraDeviceFocusMode;
+import cn.easyar.CameraDevicePreference;
+import cn.easyar.CameraDeviceSelector;
 import cn.easyar.CameraDeviceType;
+import cn.easyar.CameraParameters;
 import cn.easyar.DelayedCallbackScheduler;
 import cn.easyar.FeedbackFrameFork;
 import cn.easyar.FrameFilterResult;
@@ -36,8 +37,8 @@ import cn.easyar.InputFrameToOutputFrameAdapter;
 import cn.easyar.Matrix44F;
 import cn.easyar.OutputFrame;
 import cn.easyar.OutputFrameBuffer;
-import cn.easyar.OutputFrameJoin;
 import cn.easyar.OutputFrameFork;
+import cn.easyar.OutputFrameJoin;
 import cn.easyar.Target;
 import cn.easyar.TargetInstance;
 import cn.easyar.TargetStatus;
@@ -114,13 +115,24 @@ public class HelloAR
         boolean status = true;
         status &= camera.openWithType(CameraDeviceType.Default);
         camera.setFocusMode(CameraDeviceFocusMode.Continousauto);
-        camera.setSize(new Vec2I(1280, 720));
+        camera.setSize(new Vec2I(1920, 1080));
         camera.setBufferCapacity(5 + 11);
         if (!status) { return; }
         ImageTracker tracker = ImageTracker.create();
-        tracker.setSimultaneousNum(10);
-        for (int i = 0; i < 10; ++i){
-            loadFromImage(tracker, "namecard.jpg", "namecard" + i);
+
+        //Maximum amount of items tracked simultaneously
+        //Over 6 I already got not enough memory and app shutdown (3GB memory phone)
+        tracker.setSimultaneousNum(6);
+            loadFromImage(tracker, "1.jpg", "1");
+            loadFromImage(tracker, "1.jpg", "11");
+            loadFromImage(tracker, "2.jpg", "2");
+            loadFromImage(tracker, "2.jpg", "22");
+            loadFromImage(tracker, "3.jpg", "3");
+            loadFromImage(tracker, "3.jpg", "33");
+            loadFromImage(tracker, "4.jpg", "4");
+            loadFromImage(tracker, "4.jpg", "44");
+        for(int i = 0; i < 4; i++){
+            loadFromImage(tracker, "VŠB.jpg", "VŠB" + i);
         }
         trackers.add(tracker);
 
@@ -245,7 +257,18 @@ public class HelloAR
                             Image targetImg = images.get(0);
                             float targetScale = imagetarget.scale();
                             Vec2F scale = new Vec2F(targetScale, targetScale * targetImg.height() / targetImg.width());
-                            boxRenderer.render(projectionMatrix, targetInstance.pose(), scale);
+                            //Each VŠB items in different scale and color + white box numero uno
+                            if(target.name().equals("VŠB1")){
+                                new BoxRenderer(255, 0, 0).render(projectionMatrix, targetInstance.pose(), scale, 0.35f);
+                            } else if(target.name().equals("VŠB2")) {
+                                new BoxRenderer(0, 255, 0).render(projectionMatrix, targetInstance.pose(), scale, .4f);
+                            } else if(target.name().equals("VŠB3")) {
+                                new BoxRenderer(0, 0, 255).render(projectionMatrix, targetInstance.pose(), scale, .45f);
+                            } else if (target.name().equals("1")){
+                                new BoxRenderer(255, 255, 255).render(projectionMatrix, targetInstance.pose(), scale);
+                            } else {
+                                boxRenderer.render(projectionMatrix, targetInstance.pose(), scale);
+                            }
                             for (Image img : images) {
                                 img.dispose();
                             }

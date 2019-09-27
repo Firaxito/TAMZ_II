@@ -166,6 +166,7 @@ public class BoxRenderer
 
         vbo_coord_box = generateOneBuffer();
         GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, vbo_coord_box);
+        //Matrices defining box
         float cube_vertices[][] = {
             /* +z */{1.0f / 2, 1.0f / 2, 0.01f / 2}, {1.0f / 2, -1.0f / 2, 0.01f / 2}, {-1.0f / 2, -1.0f / 2, 0.01f / 2}, {-1.0f / 2, 1.0f / 2, 0.01f / 2},
             /* -z */{1.0f / 2, 1.0f / 2, -0.01f / 2}, {1.0f / 2, -1.0f / 2, -0.01f / 2}, {-1.0f / 2, -1.0f / 2, -0.01f / 2}, {-1.0f / 2, 1.0f / 2, -0.01f / 2}
@@ -191,6 +192,7 @@ public class BoxRenderer
 
         vbo_faces_box = generateOneBuffer();
         GLES20.glBindBuffer(GLES20.GL_ELEMENT_ARRAY_BUFFER, vbo_faces_box);
+        //Faces of connected points of the box
         short cube_faces[][] = {
             /* +x */ {0, 1, 5, 4},
             /* -x */ {3, 7, 6, 2},
@@ -198,6 +200,67 @@ public class BoxRenderer
             /* -y */ {1, 2, 6, 5},
             /* +z */ {0, 3, 2, 1},
             /* -z */ {4, 5, 6, 7}
+        };
+        ShortBuffer cube_faces_buffer = ShortBuffer.wrap(flatten(cube_faces));
+        GLES20.glBufferData(GLES20.GL_ELEMENT_ARRAY_BUFFER, cube_faces_buffer.limit() * 2, cube_faces_buffer, GLES20.GL_STATIC_DRAW);
+    }
+
+    //Copied method for boxes with custom colors
+    public BoxRenderer(int r, int g, int b)
+    {
+        current_context = ((EGL10)EGLContext.getEGL()).eglGetCurrentContext();
+        program_box = GLES20.glCreateProgram();
+        int vertShader = GLES20.glCreateShader(GLES20.GL_VERTEX_SHADER);
+        GLES20.glShaderSource(vertShader, box_vert);
+        GLES20.glCompileShader(vertShader);
+        int fragShader = GLES20.glCreateShader(GLES20.GL_FRAGMENT_SHADER);
+        GLES20.glShaderSource(fragShader, box_frag);
+        GLES20.glCompileShader(fragShader);
+        GLES20.glAttachShader(program_box, vertShader);
+        GLES20.glAttachShader(program_box, fragShader);
+        GLES20.glLinkProgram(program_box);
+        GLES20.glUseProgram(program_box);
+        GLES20.glDeleteShader(vertShader);
+        GLES20.glDeleteShader(fragShader);
+        pos_coord_box = GLES20.glGetAttribLocation(program_box, "coord");
+        pos_color_box = GLES20.glGetAttribLocation(program_box, "color");
+        pos_trans_box = GLES20.glGetUniformLocation(program_box, "trans");
+        pos_proj_box = GLES20.glGetUniformLocation(program_box, "proj");
+
+        vbo_coord_box = generateOneBuffer();
+        GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, vbo_coord_box);
+        float cube_vertices[][] = {
+                /* +z */{1.0f / 2, 1.0f / 2, 0.01f / 2}, {1.0f / 2, -1.0f / 2, 0.01f / 2}, {-1.0f / 2, -1.0f / 2, 0.01f / 2}, {-1.0f / 2, 1.0f / 2, 0.01f / 2},
+                /* -z */{1.0f / 2, 1.0f / 2, -0.01f / 2}, {1.0f / 2, -1.0f / 2, -0.01f / 2}, {-1.0f / 2, -1.0f / 2, -0.01f / 2}, {-1.0f / 2, 1.0f / 2, -0.01f / 2}
+        };
+        FloatBuffer cube_vertices_buffer = FloatBuffer.wrap(flatten(cube_vertices));
+        GLES20.glBufferData(GLES20.GL_ARRAY_BUFFER, cube_vertices_buffer.limit() * 4, cube_vertices_buffer, GLES20.GL_DYNAMIC_DRAW);
+
+        vbo_color_box = generateOneBuffer();
+        GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, vbo_color_box);
+        int cube_vertex_colors[][] = {
+                {r, g, b, 128}, {r, g, b, 128},  {r, g, b, 128}, {r, g, b, 128},
+                {r, g, b, 128}, {r, g, b, 128}, {r, g, b, 128}, {r, g, b, 128}};
+        ByteBuffer cube_vertex_colors_buffer = ByteBuffer.wrap(byteArrayFromIntArray(flatten(cube_vertex_colors)));
+        GLES20.glBufferData(GLES20.GL_ARRAY_BUFFER, cube_vertex_colors_buffer.limit(), cube_vertex_colors_buffer, GLES20.GL_STATIC_DRAW);
+
+        vbo_color_box_2 = generateOneBuffer();
+        GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, vbo_color_box_2);
+        int cube_vertex_colors_2[][] = {
+                {r, g, b, 128}, {r, g, b, 128},  {r, g, b, 128}, {r, g, b, 128},
+                {r, g, b, 128}, {r, g, b, 128}, {r, g, b, 128}, {r, g, b, 128}};
+        ByteBuffer cube_vertex_colors_2_buffer = ByteBuffer.wrap(byteArrayFromIntArray(flatten(cube_vertex_colors_2)));
+        GLES20.glBufferData(GLES20.GL_ARRAY_BUFFER, cube_vertex_colors_2_buffer.limit(), cube_vertex_colors_2_buffer, GLES20.GL_STATIC_DRAW);
+
+        vbo_faces_box = generateOneBuffer();
+        GLES20.glBindBuffer(GLES20.GL_ELEMENT_ARRAY_BUFFER, vbo_faces_box);
+        short cube_faces[][] = {
+                /* +x */ {0, 1, 5, 4},
+                /* -x */ {3, 7, 6, 2},
+                /* +y */ {0, 4, 7, 3},
+                /* -y */ {1, 2, 6, 5},
+                /* +z */ {0, 3, 2, 1},
+                /* -z */ {4, 5, 6, 7}
         };
         ShortBuffer cube_faces_buffer = ShortBuffer.wrap(flatten(cube_faces));
         GLES20.glBufferData(GLES20.GL_ELEMENT_ARRAY_BUFFER, cube_faces_buffer.limit() * 2, cube_faces_buffer, GLES20.GL_STATIC_DRAW);
@@ -248,6 +311,53 @@ public class BoxRenderer
         float cube_vertices_2[][] = {
             /* +z */{size0 / 4, size1 / 4, size0 / 4},{size0 / 4, -size1 / 4, size0 / 4},{-size0 / 4, -size1 / 4, size0 / 4},{-size0 / 4, size1 / 4, size0 / 4},
             /* -z */{size0 / 4, size1 / 4, 0},{size0 / 4, -size1 / 4, 0},{-size0 / 4, -size1 / 4, 0},{-size0 / 4, size1 / 4, 0}};
+        FloatBuffer cube_vertices_2_buffer = FloatBuffer.wrap(flatten(cube_vertices_2));
+        GLES20.glBufferData(GLES20.GL_ARRAY_BUFFER, cube_vertices_2_buffer.limit() * 4, cube_vertices_2_buffer, GLES20.GL_DYNAMIC_DRAW);
+        GLES20.glEnableVertexAttribArray(pos_coord_box);
+        GLES20.glVertexAttribPointer(pos_coord_box, 3, GLES20.GL_FLOAT, false, 0, 0);
+        GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, vbo_color_box_2);
+        GLES20.glEnableVertexAttribArray(pos_color_box);
+        GLES20.glVertexAttribPointer(pos_color_box, 4, GLES20.GL_UNSIGNED_BYTE, true, 0, 0);
+        for(int i = 0; i < 6; i++) {
+            GLES20.glDrawElements(GLES20.GL_TRIANGLE_FAN, 4, GLES20.GL_UNSIGNED_SHORT, i * 4 * 2);
+        }
+    }
+
+    //Copied method with scaler parameter for differently sized boxes
+    public void render(Matrix44F projectionMatrix, Matrix44F cameraview, Vec2F size, float scaler)
+    {
+        float size0 = size.data[0];
+        float size1 = size.data[1];
+
+        GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, vbo_coord_box);
+        float height = size0 / scaler;
+        float cube_vertices[][] = {
+                /* +z */{size0 / 2, size1 / 2, height / 2}, {size0 / 2, -size1 / 2, height / 2}, {-size0 / 2, -size1 / 2, height / 2}, {-size0 / 2, size1 / 2, height / 2},
+                /* -z */{size0 / 2, size1 / 2, 0}, {size0 / 2, -size1 / 2, 0}, {-size0 / 2, -size1 / 2, 0}, {-size0 / 2, size1 / 2, 0}};
+        FloatBuffer cube_vertices_buffer = FloatBuffer.wrap(flatten(cube_vertices));
+        GLES20.glBufferData(GLES20.GL_ARRAY_BUFFER, cube_vertices_buffer.limit() * 4, cube_vertices_buffer, GLES20.GL_DYNAMIC_DRAW);
+
+        GLES20.glEnable(GLES20.GL_BLEND);
+        GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA);
+        GLES20.glEnable(GLES20.GL_DEPTH_TEST);
+        GLES20.glUseProgram(program_box);
+        GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, vbo_coord_box);
+        GLES20.glEnableVertexAttribArray(pos_coord_box);
+        GLES20.glVertexAttribPointer(pos_coord_box, 3, GLES20.GL_FLOAT, false, 0, 0);
+        GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, vbo_color_box);
+        GLES20.glEnableVertexAttribArray(pos_color_box);
+        GLES20.glVertexAttribPointer(pos_color_box, 4, GLES20.GL_UNSIGNED_BYTE, true, 0, 0);
+        GLES20.glUniformMatrix4fv(pos_trans_box, 1, false, getGLMatrix(cameraview), 0);
+        GLES20.glUniformMatrix4fv(pos_proj_box, 1, false, getGLMatrix(projectionMatrix), 0);
+        GLES20.glBindBuffer(GLES20.GL_ELEMENT_ARRAY_BUFFER, vbo_faces_box);
+        for(int i = 0; i < 6; i++) {
+            GLES20.glDrawElements(GLES20.GL_TRIANGLE_FAN, 4, GLES20.GL_UNSIGNED_SHORT, i * 4 * 2);
+        }
+
+        GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, vbo_coord_box);
+        float cube_vertices_2[][] = {
+                /* +z */{size0 / 4, size1 / 4, size0 / 4},{size0 / 4, -size1 / 4, size0 / 4},{-size0 / 4, -size1 / 4, size0 / 4},{-size0 / 4, size1 / 4, size0 / 4},
+                /* -z */{size0 / 4, size1 / 4, 0},{size0 / 4, -size1 / 4, 0},{-size0 / 4, -size1 / 4, 0},{-size0 / 4, size1 / 4, 0}};
         FloatBuffer cube_vertices_2_buffer = FloatBuffer.wrap(flatten(cube_vertices_2));
         GLES20.glBufferData(GLES20.GL_ARRAY_BUFFER, cube_vertices_2_buffer.limit() * 4, cube_vertices_2_buffer, GLES20.GL_DYNAMIC_DRAW);
         GLES20.glEnableVertexAttribArray(pos_coord_box);
