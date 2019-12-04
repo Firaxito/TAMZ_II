@@ -2,7 +2,7 @@
 
 Seznam vyzkoušených SDK včetně jejich hodnocení.
 
-Všechna SDK byla otestována na telefonu [Redmi Note 5](https://mobilni-telefony.heureka.cz/xiaomi-redmi-note-5-4gb-64gb/ "Redmi Note 5") (3GB RAM)
+Všechna SDK byla otestována na telefonu [Redmi Note 5](https://mobilni-telefony.heureka.cz/xiaomi-redmi-note-5-3gb-32gb/ "Redmi Note 5") (3GB RAM)
 
 ---
 
